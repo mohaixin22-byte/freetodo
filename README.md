@@ -1,100 +1,64 @@
-# 文献速递工作台 v0.5
+# 文献速递工作台 v0.8
 
 文献速递制作工具（Design by mohaixin22），支持从期刊目录页一键提取文章、批量翻译、格式化输出。
 
+## 在线使用
+
+👉 [点击打开工具 v0.8](https://mohaixin22-byte.github.io/-/)
+
+> 也可下载 `index.html` 到本地，用 Chrome / Edge 打开直接使用，无需安装任何软件。
+
 ## 功能介绍
-① 期刊配置：选择目标期刊（JAMS / JM / JMR / JCR / MS / PM / MISQ / JCP / ISR），填写卷期信息和采编团队。
 
-② 录入文章：支持三种方式导入文章：
-- 批量导入：粘贴编号列表或 JSON 数组，一键解析
-- 解析HTML目录：粘贴期刊目录页源码，自动提取标题
-- 逐篇粘贴书签：配合书签工具，在每篇文章页面一键复制标题 + 作者 + 摘要
+**① 期刊配置**：选择目标期刊（JAMS / JM / JMR / JCR / MS / PM / MISQ / JCP / ISR），填写卷期信息和采编团队。
 
-③ 翻译：生成结构化提示词 → 发给 Claude 翻译 → 将结果粘贴回工具自动导入，无需 API。
+**② 录入文章**：智能识别粘贴内容类型，支持四种导入方式：
+- 自动识别：粘贴 HTML 源码 / JSON 数组 / 编号列表 / 书签提取内容，无需手动选择
+- 配合书签工具在文章页面一键复制标题 + 作者 + 摘要
 
-④ 预览输出：一键生成标准文献速递格式文本（中英双语目录 + 摘要区），直接复制使用。
+**③ 翻译**：生成专业提示词（含营销/IS学科术语规范）→ 发给任意 AI → 将结果粘贴回工具自动导入，无需 API。
+
+**④ 预览输出**：生成标准文献速递格式，支持分节复制（完整 / 头部 / 目录 / 摘要），并可导出 Markdown 或 TXT 文件。
 
 ## 书签工具使用流程
 
-1. 在工具"录入文章"页面，将目录提取器和文章提取器两个书签拖到浏览器书签栏
-2. 打开期刊目录页 → 点击「目录提取器」→ 复制到工具「批量导入」
-3. 逐篇打开文章页面 → 点击「文章提取器」→ 粘贴到工具「逐篇粘贴书签」
+1. 在工具「录入文章」页面，将两个书签拖到浏览器书签栏
+2. 打开期刊目录页 → 点击「目录提取器」→ 复制到工具「智能导入」
+3. 逐篇打开文章页面 → 点击「文章提取器」→ 粘贴到工具「智能导入」
 
 ## 支持期刊
 
-| 缩写 | 全称 | 出版商 |
-|------|------|--------|
-| JAMS | Journal of the Academy of Marketing Science | Springer |
-| JM | Journal of Marketing | SAGE |
-| JMR | Journal of Marketing Research | SAGE |
-| JCR | Journal of Consumer Research | OUP |
-| MS | Marketing Science | INFORMS |
-| PM | Psychology & Marketing | Wiley |
-| MISQ | MIS Quarterly | MISQ |
-| JCP | Journal of Consumer Psychology | Wiley |
-| ISR | Information Systems Research | INFORMS |
+| 缩写 | 全称 | 级别 | 出版商 |
+|------|------|------|--------|
+| JAMS | Journal of the Academy of Marketing Science | FT 50 | Springer |
+| JM | Journal of Marketing | UTD 24 | SAGE |
+| JMR | Journal of Marketing Research | UTD 24 | SAGE |
+| JCR | Journal of Consumer Research | UTD 24 | OUP |
+| MS | Marketing Science | UTD 24 | INFORMS |
+| PM | Psychology & Marketing | ABS 3 | Wiley |
+| MISQ | MIS Quarterly | UTD 24 | MISQ |
+| JCP | Journal of Consumer Psychology | ABS 4 | Wiley |
+| ISR | Information Systems Research | UTD 24 | INFORMS |
 
 ## 注意事项
 
-- 各人数据存储在本地浏览器，互不干扰
-- 翻译需配合 Claude 对话使用(其它ai也可以，自行修改prompts)（工具会自动生成提示词）
+- 数据存储在本地浏览器，各人互不干扰
+- 翻译需配合任意 AI 对话使用（Claude / ChatGPT / DeepSeek 均可），工具会自动生成专业提示词
 - 书签在不同期刊网站的兼容性不同，如遇抓取失败可手动粘贴内容
 
+## v0.8 更新内容
 
+**新增**
+- 粘贴内容自动识别类型，无需手动选择解析方式
+- 摘要质量自动检测（过短 / 疑似未截断 / 未以句号结尾）
+- 撤销 / 恢复功能，最多保留 20 步历史
+- 翻译进度条实时显示
+- 翻译提示词升级，加入营销 & IS 学科术语规范
+- 解析器容错增强，AI 格式轻微偏差时仍可正确导入
+- 支持导出 Markdown / TXT 文件
+- 分节复制（完整 / 头部 / 目录 / 摘要）
+- 历史记录面板，最多保存 10 条，支持一键加载
 
-
-## 文献速递工作台 v0.8 更新说明
-
-相对 v0.5 的完整变更记录。
-
-👉 https://mohaixin22-byte.github.io/-/
-
-### 新增功能
-
-智能导入（Step 2）
-- 粘贴内容自动识别类型：HTML 源码 / JSON 数组 / 书签提取格式 / 编号列表 / 纯文本列表，无需手动选择解析方式
-- 导入后显示检测到的内容类型提示
-
-摘要质量检测
-- 每篇文章自动检测英文摘要质量：过短（<50字）、疑似未截断（>800字）、未以句号结尾
-- 在文章列表中以图标实时显示，辅助人工核查
-
-撤销 / 恢复
-- 顶部标题栏新增撤销（↶）和恢复（↷）按钮
-- 每次导入、翻译操作均可撤销，最多保留 20 步历史
-
-翻译步骤优化（Step 3
-- 顶部进度条实时显示已翻译篇数和百分比
-- 翻译提示词升级：加入营销与信息系统学科背景、常见术语对照规范（affordance→可供性、boundary condition→边界条件、moderating/mediating effect→调节/中介效应等），避免字面直译
-- 解析器容错增强：支持书名号《》自动去除、`*` 星号前缀、`标题中文：` 等变体写法；三级降级策略确保 AI 格式轻微偏差时仍能正确导入
-
-导出增强（Step 4
-- 新增导出为 Markdown 文件（`.md`）
-- 新增导出为纯文本文件（`.txt`）
-- 输出区分节复制：完整输出 / 仅头部 / 仅目录 / 仅摘要，分别复制
-- 缺少中文翻译时顶部显示警告提示，注明具体篇数
-
-历史记录
-- Step 4 新增历史记录面板，每次可手动保存当前期刊输出到浏览器本地
-- 最多保留 10 条，显示期刊简称、卷期、日期、篇数
-- 支持一键加载历史记录恢复工作状态
-
-
-### 优化与修复
-
-- 步骤导航数字序号（①②③④）改为阿拉伯数字圆圈，视觉更清晰
-- 顶部版本号由 v0.5 更新为 v0.8
-- 删除了不可用的 API 直调功能（受浏览器 CORS 限制，纯本地 HTML 无法直接调用第三方 API）
-- 修复进度条在文章数为 0 时的除零报错
-- 文章列表展开/收起交互更流畅
-
-
-### 未变更
-
-- 整体单文件 HTML 架构不变，无需安装，双击即用
-- 期刊支持范围不变（JAMS / JM / JMR / JCR / MS / PM / MISQ / JCP / ISR）
-- 书签提取工具（目录提取器 / 文章提取器）逻辑不变
-- 数据存储方式不变（浏览器 localStorage，key: `wsd_v2`）
-- 输出格式模板不变
-
-
+**修复**
+- 修复进度条在文章数为 0 时的报错
+- 文章列表展开 / 收起交互优化
