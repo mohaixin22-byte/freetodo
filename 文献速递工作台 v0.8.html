@@ -1,0 +1,1027 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>文献速递工作台</title>
+<script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,'Microsoft YaHei',sans-serif;background:#edf0f7;color:#1a1a2e;min-height:100vh}
+.app{max-width:1020px;margin:0 auto;padding:20px 14px}
+
+/* Header */
+.hdr{background:linear-gradient(130deg,#1F4E79,#315EA3);color:#fff;padding:18px 24px;border-radius:14px;margin-bottom:18px;display:flex;align-items:center;justify-content:space-between}
+.hdr h1{font-size:17px;font-weight:700;margin-bottom:3px}
+.hdr p{font-size:11px;opacity:.75}
+.hdr-right{display:flex;gap:8px}
+.ghost-btn{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);color:#fff;padding:5px 13px;border-radius:7px;cursor:pointer;font-size:12px;font-family:inherit}
+.ghost-btn:hover{background:rgba(255,255,255,.25)}
+
+/* Steps */
+.steps{display:flex;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 1px 5px rgba(0,0,0,.08);margin-bottom:18px}
+.stp{flex:1;padding:12px 12px;display:flex;align-items:center;gap:8px;border-right:1px solid #e5eaf2;font-size:12.5px;color:#888;transition:all .2s;cursor:default}
+.stp:last-child{border-right:none}
+.stp.back{cursor:pointer}
+.stp.back:hover{background:#f5f8ff}
+.stp.active{background:#315EA3;color:#fff}
+.stp.done{background:#eff4ff;color:#315EA3}
+.stp-n{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;background:#e5eaf2;color:#888}
+.stp.active .stp-n{background:rgba(255,255,255,.25);color:#fff}
+.stp.done .stp-n{background:#315EA3;color:#fff}
+
+/* Cards */
+.card{background:#fff;border-radius:12px;padding:20px;box-shadow:0 1px 5px rgba(0,0,0,.07);margin-bottom:13px}
+.ct{font-size:14px;font-weight:600;color:#1F4E79;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid #edf0f7;display:flex;align-items:center;gap:7px}
+
+/* Forms */
+.row{display:flex;gap:11px;margin-bottom:11px;flex-wrap:wrap}
+.fg{display:flex;flex-direction:column;gap:5px;flex:1;min-width:120px}
+label{font-size:11.5px;color:#555;font-weight:500}
+.fc{border:1.5px solid #d8deeb;border-radius:8px;padding:7px 10px;font-size:13px;outline:none;font-family:inherit;transition:border-color .2s;background:#fff;color:#1a1a2e;width:100%}
+.fc:focus{border-color:#315EA3;box-shadow:0 0 0 3px rgba(49,94,163,.1)}
+select.fc{cursor:pointer}
+textarea.fc{resize:vertical;font-family:'Courier New',monospace;font-size:12px;line-height:1.6}
+
+/* Journal grid */
+.jg{display:grid;grid-template-columns:repeat(auto-fill,minmax(108px,1fr));gap:8px;margin-bottom:14px}
+.jc{border:2px solid #dde3ed;border-radius:10px;padding:9px 7px;cursor:pointer;transition:all .15s;text-align:center}
+.jc:hover{border-color:#315EA3;background:#f3f7ff}
+.jc.sel{border-color:#315EA3;background:#e6efff}
+.ja{font-size:17px;font-weight:800;color:#315EA3;line-height:1.2;margin-bottom:2px}
+.jn{font-size:10px;color:#666;line-height:1.3}
+.jr{font-size:10px;color:#999;margin-top:2px;font-style:italic}
+
+/* Bookmarklet box */
+.bm-box{background:#f8f9fc;border:1.5px solid #d8deeb;border-radius:10px;padding:14px 16px;margin-top:10px}
+.bm-title{font-size:12px;font-weight:600;color:#444;margin-bottom:10px}
+.bm-row{display:flex;gap:10px;align-items:center;margin-bottom:8px;flex-wrap:wrap}
+.bm-link{display:inline-flex;align-items:center;gap:5px;padding:6px 14px;border-radius:8px;font-size:12.5px;font-weight:600;text-decoration:none;border:1.5px solid;cursor:grab;user-select:none;transition:all .15s}
+.bm-toc{background:#e8f4e8;border-color:#72b572;color:#2d6a2d}
+.bm-toc:hover{background:#d1ead1}
+.bm-art{background:#e8eef8;border-color:#7090c8;color:#1F4E79}
+.bm-art:hover{background:#d5e0f4}
+.bm-hint{font-size:11px;color:#777;line-height:1.6;margin-top:8px;padding-top:8px;border-top:1px solid #e5eaf2}
+.bm-hint b{color:#444}
+
+/* Article list */
+.al{display:flex;flex-direction:column;gap:7px}
+.ai{border:1.5px solid #dde3ed;border-radius:10px;overflow:hidden;transition:border-color .2s}
+.ai:hover{border-color:#b5c6df}
+.ah{padding:10px 13px;display:flex;align-items:center;gap:9px;cursor:pointer;background:#fafbfd}
+.ah:hover{background:#f0f5ff}
+.anum{font-size:16px;font-weight:800;color:#C00000;min-width:24px}
+.atitles{flex:1;min-width:0}
+.aten{font-size:12px;font-weight:600;color:#315EA3;line-height:1.4;word-break:break-word}
+.atzh{font-size:12px;color:#555;margin-top:2px}
+.abadges{display:flex;gap:3px;flex-shrink:0}
+.bdg{padding:2px 5px;border-radius:9px;font-size:10px;font-weight:600}
+.bok{background:#d1fae5;color:#065f46}
+.bno{background:#fee2e2;color:#991b1b}
+.ab{padding:14px;border-top:1.5px solid #edf0f7}
+.achev{color:#bbb;font-size:10px;margin-left:4px}
+
+/* Buttons */
+.btn{padding:7px 17px;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;border:none;transition:all .15s;display:inline-flex;align-items:center;gap:6px;font-family:inherit}
+.bp{background:#315EA3;color:#fff}
+.bp:hover:not(:disabled){background:#1F4E79}
+.bp:disabled{background:#a0b8d8;cursor:not-allowed}
+.bo{background:#fff;color:#315EA3;border:1.5px solid #315EA3}
+.bo:hover:not(:disabled){background:#f0f5ff}
+.bo:disabled{opacity:.5;cursor:not-allowed}
+.bd{background:#fff;color:#dc2626;border:1.5px solid #fca5a5}
+.bd:hover{background:#fee2e2}
+.sm{padding:5px 10px;font-size:12px}
+.bg{display:flex;gap:7px;flex-wrap:wrap;margin-top:10px}
+.navr{display:flex;justify-content:space-between;margin-top:4px}
+
+/* Tabs */
+.tabs{display:flex;border-bottom:2px solid #e5eaf2;margin-bottom:14px}
+.tab{padding:7px 16px;font-size:12.5px;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;color:#777;transition:all .15s;font-weight:500;border-radius:4px 4px 0 0}
+.tab.on{border-bottom-color:#315EA3;color:#315EA3;background:#f3f7ff}
+.tab:hover:not(.on){color:#315EA3}
+
+/* Alerts */
+.al2{padding:9px 13px;border-radius:8px;font-size:12px;margin-bottom:11px;line-height:1.5}
+.ai2{background:#eff6ff;border:1px solid #bfdbfe;color:#1e40af}
+.aok{background:#d1fae5;border:1px solid #6ee7b7;color:#065f46}
+.aw{background:#fef3c7;border:1px solid #fcd34d;color:#92400e}
+.ae{background:#fee2e2;border:1px solid #fca5a5;color:#991b1b}
+
+/* Output */
+.ob{background:#13172e;color:#dde8ff;padding:18px;border-radius:10px;font-family:'Courier New',monospace;font-size:12.5px;line-height:1.9;white-space:pre-wrap;word-break:break-word;max-height:500px;overflow-y:auto}
+.ob::-webkit-scrollbar{width:5px}
+.ob::-webkit-scrollbar-thumb{background:#315EA3;border-radius:3px}
+
+/* Progress */
+.pb{height:5px;background:#dde3ed;border-radius:3px;overflow:hidden;margin:6px 0}
+.pf{height:100%;background:linear-gradient(90deg,#315EA3,#1F4E79);border-radius:3px;transition:width .3s}
+
+/* HTML parse panel */
+.parse-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.title-preview{max-height:240px;overflow-y:auto;border:1.5px solid #d8deeb;border-radius:8px;padding:10px}
+.tp-item{font-size:12px;padding:4px 6px;border-bottom:1px solid #f0f3f8;display:flex;gap:6px;align-items:flex-start}
+.tp-num{color:#C00000;font-weight:700;flex-shrink:0;min-width:22px}
+.tp-txt{color:#315EA3;line-height:1.4}
+
+
+/* v0.8 新增样式 */
+.btn-s{padding:4px 10px;font-size:11.5px;border-radius:6px;font-weight:500;cursor:pointer;border:none;transition:all .15s;font-family:inherit}
+.msg{padding:8px 12px;border-radius:6px;font-size:12px;margin-top:8px}
+.msg-ok{background:#d1fae5;border:1px solid #6ee7b7;color:#065f46}
+.msg-w{background:#fef3c7;border:1px solid #fcd34d;color:#92400e}
+.msg-i{background:#eff6ff;border:1px solid #bfdbfe;color:#1e40af}
+.arow{border:1.5px solid #e5eaf2;border-radius:10px;margin-bottom:10px;overflow:hidden;transition:border-color .2s}
+.arow:hover{border-color:#b5c6df}
+.arow-h{padding:12px 16px;cursor:pointer;background:#fafbfd;display:flex;align-items:center;gap:12px}
+.arow-h:hover{background:#f0f5ff}
+.arow-b{padding:16px;border-top:1.5px solid #edf0f7;background:#fff}
+.badge{padding:3px 7px;border-radius:9px;font-size:10.5px;font-weight:600}
+.bg{background:#52c41a;color:#fff}
+.by{background:#fff3cd;color:#856404}
+.ta{border:1.5px solid #d8deeb;border-radius:8px;padding:10px;font-size:12.5px;outline:none;font-family:'Courier New',monospace;resize:vertical;width:100%;line-height:1.6}
+.ta:focus{border-color:#315EA3;box-shadow:0 0 0 3px rgba(49,94,163,.1)}
+
+@media(max-width:640px){
+  .steps{flex-wrap:wrap}
+  .stp{min-width:50%;border-bottom:1px solid #e5eaf2}
+  .jg{grid-template-columns:repeat(3,1fr)}
+  .parse-grid{grid-template-columns:1fr}
+  .abadges{display:none}
+}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const {useState,useEffect,useCallback,useRef} = React;
+
+/* ═══════════════════════════════
+   DATA: Journals + Bookmarklets
+════════════════════════════════ */
+const BM = {
+  sage:{
+    toc:`(function(){var s=['.issue-item__title','h3.issue-item__title','.toc-item__title'];var ts=[];for(var i=0;i<s.length;i++){var els=document.querySelectorAll(s[i]);if(els.length>1){ts=[...els].map(function(e,j){return(j+1)+'. '+e.textContent.trim().replace(/\\s+/g,' ')}).filter(function(t){return t.length>15});break}}if(!ts.length)ts=[...document.querySelectorAll('h3 a,h4 a')].filter(function(a){return a.textContent.length>20&&a.textContent.length<300}).map(function(a,j){return(j+1)+'. '+a.textContent.trim()});if(!ts.length){alert('未找到文章列表，请尝试手动复制标题。');return}navigator.clipboard.writeText(ts.join('\\n')).then(function(){alert('✓ 已复制 '+ts.length+' 篇标题')});})()`,
+    article:`(function(){var t=document.querySelector('.citation__title,h1.article-title,h1')?.textContent.trim()||'';var aa=[...document.querySelectorAll('.loa-authors .author-name,.contrib-author,.author-name')].map(function(a){return a.textContent.trim()}).filter(function(a){return a&&a.length<80&&a.length>2});var aStr=aa.length>1?aa.slice(0,-1).join(', ')+'和'+aa[aa.length-1]:aa[0]||'';var abs=document.querySelector('.abstractSection p,.abstract-content p,section[class*="abstract"] p')?.textContent.trim()||'';var txt=t+'\\n作者：'+aStr+'\\nAbstract: '+abs;navigator.clipboard.writeText(txt).then(function(){alert('✓ 已复制 '+txt.length+' 字')});})()`,
+  },
+  informs:{
+    toc:`(function(){var s=['.issue-item__title','h4.issue-item__title','.hlFld-Title'];var ts=[];for(var i=0;i<s.length;i++){var els=document.querySelectorAll(s[i]);if(els.length>1){ts=[...els].map(function(e,j){return(j+1)+'. '+e.textContent.trim().replace(/\\s+/g,' ')}).filter(function(t){return t.length>15});break}}if(!ts.length)ts=[...document.querySelectorAll('h4 a,h3 a')].filter(function(a){return a.textContent.length>20&&a.textContent.length<300}).map(function(a,j){return(j+1)+'. '+a.textContent.trim()});if(!ts.length){alert('未找到文章列表，请尝试手动复制标题。');return}navigator.clipboard.writeText(ts.join('\\n')).then(function(){alert('✓ 已复制 '+ts.length+' 篇标题')});})()`,
+    article:`(function(){var t=document.querySelector('.citation__title')?.textContent.trim()||document.querySelector('h1')?.textContent.trim()||'';var aa=[...document.querySelectorAll('.author-name span,.contrib-author .given-name,.loa .author-name')].map(function(a){return a.textContent.trim()}).filter(Boolean);var aStr=aa.length>1?aa.slice(0,-1).join(', ')+'和'+aa[aa.length-1]:aa[0]||'';var abs=document.querySelector('.abstractSection p,.NLM_abstract p')?.textContent.trim()||'';var txt=t+'\\n作者：'+aStr+'\\nAbstract: '+abs;navigator.clipboard.writeText(txt).then(function(){alert('✓ 已复制 '+txt.length+' 字')});})()`,
+  },
+  oup:{
+    toc:`(function(){var s=['.article-result-title','.al-title','h5.title'];var ts=[];for(var i=0;i<s.length;i++){var els=document.querySelectorAll(s[i]);if(els.length>1){ts=[...els].map(function(e,j){return(j+1)+'. '+e.textContent.trim().replace(/\\s+/g,' ')}).filter(function(t){return t.length>15});break}}if(!ts.length){alert('未找到文章列表');return}navigator.clipboard.writeText(ts.join('\\n')).then(function(){alert('✓ 已复制 '+ts.length+' 篇标题')});})()`,
+    article:`(function(){var t=document.querySelector('h1.article-title,.content-main h1')?.textContent.trim()||'';var aa=[...document.querySelectorAll('.al-author-name,.contrib-group .contrib')].map(function(a){return a.textContent.trim().replace(/\\s+/g,' ')}).filter(function(a){return a&&a.length<80});var aStr=aa.length>1?aa.slice(0,-1).join(', ')+'和'+aa[aa.length-1]:aa[0]||'';var abs=document.querySelector('section.abstract p,.abstract-content')?.textContent.trim()||'';var txt=t+'\\n作者：'+aStr+'\\nAbstract: '+abs;navigator.clipboard.writeText(txt).then(function(){alert('✓ 已复制 '+txt.length+' 字')});})()`,
+  },
+  wiley:{
+    toc:`(function(){var s=['.issue-item__title','h2.citation__title'];var ts=[];for(var i=0;i<s.length;i++){var els=document.querySelectorAll(s[i]);if(els.length>1){ts=[...els].map(function(e,j){return(j+1)+'. '+e.textContent.trim().replace(/\\s+/g,' ')}).filter(function(t){return t.length>15});break}}if(!ts.length){alert('未找到文章列表');return}navigator.clipboard.writeText(ts.join('\\n')).then(function(){alert('✓ 已复制 '+ts.length+' 篇标题')});})()`,
+    article:`(function(){var t=document.querySelector('.citation__title,h1')?.textContent.trim()||'';var aa=[...document.querySelectorAll('.author-name,.loa-authors li')].map(function(a){return a.textContent.trim()}).filter(function(a){return a&&a.length<80});var aStr=aa.length>1?aa.slice(0,-1).join(', ')+'和'+aa[aa.length-1]:aa[0]||'';var abs=document.querySelector('.article-section__content p,section.abstract p')?.textContent.trim()||'';var txt=t+'\\n作者：'+aStr+'\\nAbstract: '+abs;navigator.clipboard.writeText(txt).then(function(){alert('✓ 已复制 '+txt.length+' 字')});})()`,
+  },
+  elsevier:{
+    toc:`(function(){var s=['h2.js-article-list-item','h3.article-title','.article-title'];var ts=[];for(var i=0;i<s.length;i++){var els=document.querySelectorAll(s[i]);if(els.length>1){ts=[...els].map(function(e,j){return(j+1)+'. '+e.textContent.trim().replace(/\\s+/g,' ')}).filter(function(t){return t.length>15});break}}if(!ts.length){alert('未找到文章列表');return}navigator.clipboard.writeText(ts.join('\\n')).then(function(){alert('✓ 已复制 '+ts.length+' 篇标题')});})()`,
+    article:`(function(){var t=document.querySelector('h1.title-text,span.title-text')?.textContent.trim()||'';var aa=[...document.querySelectorAll('.author.size-m.workspace-trigger')].map(function(a){return a.textContent.trim()}).filter(Boolean);var abs=document.querySelector('.abstract.author p,#abstracts p')?.textContent.trim()||'';var txt=t+'\\n作者：'+aa.join(', ')+'\\nAbstract: '+abs;navigator.clipboard.writeText(txt).then(function(){alert('✓ 已复制 '+txt.length+' 字')});})()`,
+  },
+  misq:{
+    toc:`(function(){var s=['.entry-title a','h2.post-title a','h3 a'];var ts=[];for(var i=0;i<s.length;i++){var els=document.querySelectorAll(s[i]);if(els.length>1){ts=[...els].map(function(e,j){return(j+1)+'. '+e.textContent.trim()}).filter(function(t){return t.length>15});break}}if(!ts.length){alert('未找到文章列表');return}navigator.clipboard.writeText(ts.join('\\n')).then(function(){alert('✓ 已复制 '+ts.length+' 篇标题')});})()`,
+    article:`(function(){var t=document.querySelector('h1.entry-title,h1')?.textContent.trim()||'';var aa=[...document.querySelectorAll('.author,.byline a')].map(function(a){return a.textContent.trim()}).filter(Boolean);var aStr=aa.length>1?aa.slice(0,-1).join(', ')+'和'+aa[aa.length-1]:aa[0]||'';var abs=document.querySelector('.abstract p,#abstract p,[class*="abstract"] p')?.textContent.trim()||'';var txt=t+'\\n作者：'+aStr+'\\nAbstract: '+abs;navigator.clipboard.writeText(txt).then(function(){alert('✓ 已复制 '+txt.length+' 字')});})()`,
+  },
+  springer:{
+    toc:`(function(){var s=['.c-card__title a','.app-card-open__heading a','h3.c-card__title a','.c-listing__title a'];var ts=[];for(var i=0;i<s.length;i++){var els=document.querySelectorAll(s[i]);if(els.length>1){ts=[...els].map(function(e,j){return(j+1)+'. '+e.textContent.trim().replace(/\\s+/g,' ')}).filter(function(t){return t.length>15&&t.length<300});break}}if(!ts.length){alert('未找到文章列表，请尝试手动复制标题。');return}navigator.clipboard.writeText(ts.join('\\n')).then(function(){alert('✓ 已复制 '+ts.length+' 篇标题')});})()`,
+    article:`(function(){var t=document.querySelector('h1.c-article-title')?.textContent.trim()||document.querySelector('h1')?.textContent.trim()||'';var aa=[...document.querySelectorAll('.c-article-author-list a[data-test="author-name"],.c-author-list a,.authors-list a')].map(function(a){return a.textContent.trim()}).filter(function(a){return a&&a.length<80&&a.length>2});var aStr=aa.length>1?aa.slice(0,-1).join(', ')+'和'+aa[aa.length-1]:aa[0]||'';var abs=document.querySelector('#Abs1-content p,.c-article-section__content p,section[data-title="Abstract"] p')?.textContent.trim()||'';var txt=t+'\\n作者：'+aStr+'\\nAbstract: '+abs;navigator.clipboard.writeText(txt).then(function(){alert('✓ 已复制 '+txt.length+' 字')});})()`,
+  },
+};
+
+const JOURNALS = [
+  {id:'jams',abbr:'JAMS', name:'Journal of the Academy of Marketing Science', url:'https://link.springer.com/journal/11747/volumes-and-issues/{vol}/{iss}', rank:'FT 50', pub:'springer'},
+  {id:'jm',  abbr:'JM',   name:'Journal of Marketing',                        url:'https://journals.sagepub.com/toc/jmxa/{vol}/{iss}',                     rank:'UTD 24',pub:'sage'},
+  {id:'jmr', abbr:'JMR',  name:'Journal of Marketing Research',               url:'https://journals.sagepub.com/toc/mrja/{vol}/{iss}',                     rank:'UTD 24',pub:'sage'},
+  {id:'jcr', abbr:'JCR',  name:'Journal of Consumer Research',                url:'https://academic.oup.com/jcr/issue/{vol}/{iss}',                        rank:'UTD 24',pub:'oup'},
+  {id:'ms',  abbr:'MS',   name:'Marketing Science',                           url:'https://pubsonline.informs.org/toc/mksc/{vol}/{iss}',                   rank:'UTD 24',pub:'informs'},
+  {id:'pm',  abbr:'PM',   name:'Psychology & Marketing',                      url:'https://onlinelibrary.wiley.com/toc/15206793/{vol}/{iss}',              rank:'ABS 3', pub:'wiley'},
+  {id:'misq',abbr:'MISQ', name:'MIS Quarterly',                               url:'https://misq.umn.edu/misq/downloads/download/issue/{iss}/',             rank:'UTD 24',pub:'misq'},
+  {id:'jcp', abbr:'JCP',  name:'Journal of Consumer Psychology',              url:'https://myscp.onlinelibrary.wiley.com/toc/10577408/{vol}/{iss}',        rank:'ABS 4', pub:'wiley'},
+  {id:'isr', abbr:'ISR',  name:'Information Systems Research',                url:'https://pubsonline.informs.org/toc/isre/{vol}/{iss}',                   rank:'UTD 24',pub:'informs'},
+];
+
+const MZ=['','一月','二月','三月','四月','五月','六月','七月','八月','九月','十月','十一月','十二月'];
+const ME=['','January','February','March','April','May','June','July','August','September','October','November','December'];
+const SK='wsd_v2';
+
+/* ═══════════════════════════════
+   Utilities
+════════════════════════════════ */
+function save(s){try{localStorage.setItem(SK,JSON.stringify(s))}catch{}}
+function load(){try{const d=localStorage.getItem(SK);return d?JSON.parse(d):null}catch{return null}}
+
+function newA(o={}){return{id:Date.now()+Math.random(),titleEn:'',titleZh:'',authors:[],abstractEn:'',abstractZh:'',...o}}
+
+function parseTitles(raw){
+  raw=raw.trim();if(!raw)return[];
+  try{const p=JSON.parse(raw);if(Array.isArray(p))return p.map(x=>typeof x==='string'?newA({titleEn:x.trim()}):newA({titleEn:(x.title||x.titleEn||'').trim(),titleZh:(x.titleZh||'').trim(),authors:Array.isArray(x.authors)?x.authors:[],abstractEn:(x.abstract||x.abstractEn||'').trim(),abstractZh:x.abstractZh||''})).filter(a=>a.titleEn)}catch{}
+  const lines=raw.split('\n').map(l=>l.trim()).filter(Boolean);
+  const num=lines.filter(l=>/^\d+[.、．]\s*.{5,}/.test(l));
+  if(num.length>=2)return num.map(l=>newA({titleEn:l.replace(/^\d+[.、．]\s*/,'').trim()}));
+  return lines.filter(l=>l.length>10).map(l=>newA({titleEn:l}));
+}
+
+function parseBookmark(raw){
+  const r={titleEn:'',authors:[],abstractEn:''};
+  const lines=raw.split('\n').map(l=>l.trim()).filter(Boolean);
+  if(!lines.length)return r;
+  // If first line starts with 作者： it's partially formatted
+  let i=0;
+  // Check if we have 作者: line
+  const authLine=lines.findIndex(l=>/^作者[：:]/.test(l));
+  const absLine=lines.findIndex(l=>/^Abstract[:\s]/i.test(l)||l.toLowerCase()==='abstract');
+
+  if(authLine>0){
+    r.titleEn=lines.slice(0,authLine).join(' ').trim();
+    r.authors=lines[authLine].replace(/^作者[：:]\s*/,'').replace(/ and /gi,',').replace(/和/g,',').split(/,\s*/).map(a=>a.trim()).filter(a=>a&&/[A-Za-z一-龥]/.test(a));
+    if(absLine>authLine){
+      const absParts=[];
+      const firstAbs=lines[absLine].replace(/^Abstract[:\s]*/i,'').trim();
+      if(firstAbs)absParts.push(firstAbs);
+      for(let j=absLine+1;j<lines.length;j++)absParts.push(lines[j]);
+      r.abstractEn=absParts.join(' ').trim();
+    }
+    return r;
+  }
+
+  // Unformatted: title is line 0
+  r.titleEn=lines[0];
+  if(absLine>0){
+    const mid=lines.slice(1,absLine);
+    const al=mid.find(l=>/[A-Z][a-z]+ [A-Z]/.test(l)&&l.length<300&&!/(doi|DOI|Published|Volume|Issue)/.test(l));
+    if(al)r.authors=al.replace(/ and /gi,',').split(/,\s*/).map(a=>a.trim()).filter(a=>a&&/[A-Za-z]/.test(a)&&a.length<80);
+    const ap=[];
+    const fl=lines[absLine].replace(/^Abstract[:\s]*/i,'').trim();
+    if(fl)ap.push(fl);
+    for(let j=absLine+1;j<lines.length;j++)ap.push(lines[j]);
+    r.abstractEn=ap.join(' ').trim();
+  } else if(lines.length>=2){
+    if(/[A-Z][a-z]+ [A-Z]/.test(lines[1])&&lines[1].length<250)
+      r.authors=lines[1].replace(/ and /gi,',').split(/,\s*/).map(a=>a.trim()).filter(a=>a&&/[A-Za-z]/.test(a)&&a.length<80);
+    r.abstractEn=lines.slice(2).join(' ').trim();
+  }
+  return r;
+}
+
+// Parse HTML string for article titles
+function parseHTML(html,pub){
+  const SEL={
+    sage:['.issue-item__title','h3.issue-item__title','.toc-item__title'],
+    informs:['.issue-item__title','h4.issue-item__title','.hlFld-Title'],
+    oup:['.article-result-title','.al-title','h5.title'],
+    wiley:['.issue-item__title','h2.citation__title'],
+    elsevier:['h2.js-article-list-item','h3.article-title','.article-title'],
+    misq:['.entry-title','h2.post-title','h3'],
+    springer:['.c-card__title a','.app-card-open__heading a','h3.c-card__title a','.c-listing__title a'],
+  };
+  const parser=new DOMParser();
+  const doc=parser.parseFromString(html,'text/html');
+  const selectors=SEL[pub]||SEL.sage;
+  for(const sel of selectors){
+    const els=doc.querySelectorAll(sel);
+    if(els.length>=2){
+      const titles=[...els].map(e=>(e.querySelector('a')||e).textContent.trim().replace(/\s+/g,' ')).filter(t=>t.length>10&&t.length<300);
+      if(titles.length>=2)return titles;
+    }
+  }
+  // Fallback
+  const fb=[...doc.querySelectorAll('h3 a,h4 a,h3,h4')].map(e=>e.textContent.trim().replace(/\s+/g,' ')).filter(t=>t.length>20&&t.length<250&&/[A-Z]/.test(t));
+  return[...new Set(fb)];
+}
+
+function fmtAuthors(aa){
+  if(!aa||!aa.length)return'';
+  if(aa.length===1)return aa[0];
+  return aa.slice(0,-1).join(', ')+'和'+aa[aa.length-1];
+}
+
+// 摘要质量检测
+function checkAbstract(abs){
+  if(!abs||abs.length<10)return{status:'empty',msg:'摘要缺失'};
+  if(abs.length<50)return{status:'short',msg:'摘要过短（<50字）'};
+  if(abs.length>800)return{status:'long',msg:'疑似未截断（>800字）'};
+  const lastChar=abs.trim().slice(-1);
+  if(lastChar==='.'||lastChar==='。')return{status:'ok',msg:'✓'};
+  return{status:'warn',msg:'未以句号结尾'};
+}
+
+// 自动识别粘贴内容类型
+function detectPasteType(text){
+  text=text.trim();
+  if(!text)return null;
+  if(text.includes('<html')||text.includes('<!DOCTYPE')||text.includes('<div'))return'html';
+  if(text.startsWith('[')&&text.includes('{'))return'json';
+  if(/作者[：:]/m.test(text)||/Abstract[\s:]/i.test(text))return'bookmark';
+  if(/^\d+[.、．]\s*.{10,}/m.test(text))return'numbered';
+  return'lines';
+}
+
+// 智能解析粘贴内容
+function smartParse(text,pub){
+  const type=detectPasteType(text);
+  if(type==='html')return parseHTML(text,pub).map(t=>newA({titleEn:t}));
+  if(type==='json'||type==='numbered'||type==='lines')return parseTitles(text);
+  if(type==='bookmark'){
+    const r=parseBookmark(text);
+    return r.titleEn?[newA(r)]:[];
+  }
+  return[];
+}
+
+function genPrompt(articles){
+  const items=articles.filter(a=>(!a.titleZh&&a.titleEn)||(!a.abstractZh&&a.abstractEn));
+  if(!items.length)return'';
+  const header=`你是一名专业的市场营销与信息系统领域学术译者，熟悉国际顶级期刊（如 Journal of Marketing、MIS Quarterly、Journal of Consumer Research 等）的中文翻译规范。
+
+请将以下 ${items.length} 篇学术论文的标题和摘要翻译成中文，要求：
+1. 专业术语准确：affordance→可供性，boundary condition→边界条件，moderating effect→调节效应，mediating effect→中介效应，construal→解释水平，identity→身份认同，engagement→参与/投入（视语境），platform→平台，algorithm→算法，等，请勿使用字面直译
+2. 句式符合中文学术表达习惯，避免英文句式硬译
+3. 摘要完整翻译，不省略任何句子
+
+请严格按以下格式输出，不要有任何额外说明或前言：
+
+[1]
+标题：（中文标题）
+摘要：（中文摘要）
+
+[2]
+标题：（中文标题）
+摘要：（中文摘要）
+
+（以此类推）
+
+---
+待翻译原文：
+`;
+  const body=items.map((a,i)=>`[${i+1}]\n${a.titleEn}\nAbstract: ${a.abstractEn||'（暂无摘要）'}`).join('\n\n');
+  return header+'\n'+body;
+}
+
+function parseTransResult(text,articles){
+  const items=articles.map((a,i)=>({...a,_idx:i})).filter(a=>(!a.titleZh&&a.titleEn)||(!a.abstractZh&&a.abstractEn));
+  const updates={};
+
+  // 清洗：去除书名号、前后空白、多余的"中文"字样
+  const cleanTitle=(s)=>s.trim().replace(/^[《「『【"']+|[》」』】"']+$/g,'').trim();
+  const cleanAbstract=(s)=>s.trim().replace(/\n{3,}/g,'\n\n');
+
+  // 主解析：匹配 [N] 块，标题/摘要 key 支持多种写法
+  const reBlock=/\[(\d+)\][^\n]*\n([\s\S]+?)(?=\n\s*\[\d+\]|$)/g;
+  let m;
+  while((m=reBlock.exec(text))!==null){
+    const n=parseInt(m[1])-1;
+    if(n<0||n>=items.length)continue;
+    const blk=m[2];
+    const tM=blk.match(/^[*\s]*标题[中文翻译]*\s*[：:]\s*(.+)/m);
+    const aM=blk.match(/^[*\s]*摘要[中文翻译]*\s*[：:]\s*([\s\S]+)/m);
+    if(tM||aM){
+      updates[items[n]._idx]={
+        titleZh:tM?cleanTitle(tM[1]):'',
+        abstractZh:aM?cleanAbstract(aM[1].replace(/\n[*\s]*标题.*$/m,'')):'',
+      };
+    }
+  }
+
+  // 降级：按 [N] 分割块
+  if(!Object.keys(updates).length){
+    const blocks=text.split(/\n?\s*\[\d+\]\s*\n?/).slice(1);
+    blocks.forEach((blk,n)=>{
+      if(n>=items.length)return;
+      const tM=blk.match(/[*\s]*标题[中文翻译]*\s*[：:]\s*(.+)/);
+      const aM=blk.match(/[*\s]*摘要[中文翻译]*\s*[：:]\s*([\s\S]+?)(?=[*\s]*标题|$)/);
+      if(tM||aM)updates[items[n]._idx]={
+        titleZh:tM?cleanTitle(tM[1]):'',
+        abstractZh:aM?cleanAbstract(aM[1]):'',
+      };
+    });
+  }
+
+  // 最终降级：顺序匹配所有"标题：…摘要：…"对
+  if(!Object.keys(updates).length){
+    const rePair=/标题[中文翻译]*\s*[：:]\s*(.+?)\s*\n+摘要[中文翻译]*\s*[：:]\s*([\s\S]+?)(?=标题|$)/g;
+    let p;let n=0;
+    while((p=rePair.exec(text))!==null&&n<items.length){
+      updates[items[n]._idx]={titleZh:cleanTitle(p[1]),abstractZh:cleanAbstract(p[2])};
+      n++;
+    }
+  }
+
+  return updates;
+}
+
+function genOutput(config,articles,journal){
+  const{vol,iss,year,month,issueSeq,team,customName,customUrl}=config;
+  const jName=journal.id==='custom'?customName:journal.name;
+  const jAbbr=journal.id==='custom'?(customName||'').toUpperCase().replace(/[^A-Z]/g,'').slice(0,6):journal.abbr;
+  const moZH=MZ[+month]||'';const moEN=ME[+month]||'';
+  const rank=journal.rank?`（${journal.rank}）`:'';
+  const url=(journal.id==='custom'?customUrl:journal.url).replace('{vol}',vol).replace('{iss}',iss).replace('{year}',year);
+  const n=articles.length;
+  const topL=articles.map(a=>a.titleZh||a.titleEn).join('、');
+  const topS=articles.map(a=>{const t=a.titleZh||a.titleEn;const c=t.indexOf('：')>0?t.indexOf('：'):Math.min(t.length,18);return t.slice(0,c)}).join('、');
+  const L=[];
+  L.push(`【文献速递】${year}年第${issueSeq}期，${jName}，${vol}卷，第${iss}期，${year}年${moZH}`);
+  L.push('');
+  L.push(`【文献速递】${jName},Volume ${vol}, Issue ${iss}, ${moEN} ${year}`);
+  L.push('');
+  L.push(`采编:${team.editor||'　'}  校对:${team.proofreader||'　'}  终审:${team.finalReviewer||'　'}`);
+  L.push('');
+  L.push(`${year}年${month}月${jName}${rank}的${n}篇文章，主题有${topS}等。`);
+  L.push('');
+  L.push('目录');L.push('');
+  articles.forEach((a,i)=>{L.push(`${i+1}.${a.titleEn}`);L.push(a.titleZh||'（待翻译）');L.push('')});
+  L.push('摘要');L.push('');
+  articles.forEach((a,i)=>{
+    L.push(`${i+1}.${a.titleEn}`);
+    L.push(a.titleZh||'（待翻译）');
+    L.push(`作者：${fmtAuthors(a.authors)||'（待填写）'}`);
+    L.push('');
+    L.push(`Abstract: ${a.abstractEn||'（待填写）'}`);
+    L.push('');
+    L.push(`摘要：${a.abstractZh||'（待翻译）'}`);
+    L.push('');
+  });
+  L.push(`原文链接：${url}`);L.push('');
+  L.push(`${year}年${month}月${jAbbr}的${n}篇文章，主题有${topS}等。`);
+  return L.join('\n');
+}
+
+// 生成 Markdown 格式
+function genMarkdown(config,articles,journal){
+  const{vol,iss,year,month}=config;
+  const jName=journal.name;
+  const jAbbr=journal.abbr;
+  const n=articles.length;
+  const lines=[];
+  lines.push(`# 【文献速递】${year}年第${config.issueSeq}期`);
+  lines.push('');
+  lines.push(`**${jName}**, Volume ${vol}, Issue ${iss}, ${year}年${month}月`);
+  lines.push('');
+  lines.push(`采编: ${config.team.editor||'　'} | 校对: ${config.team.proofreader||'　'} | 终审: ${config.team.finalReviewer||'　'}`);
+  lines.push('');
+  lines.push('---');
+  lines.push('');
+  lines.push('## 目录');
+  lines.push('');
+  articles.forEach((a,i)=>{
+    lines.push(`### ${i+1}. ${a.titleEn}`);
+    lines.push(a.titleZh||'（待翻译）');
+    lines.push('');
+  });
+  lines.push('---');
+  lines.push('');
+  lines.push('## 摘要');
+  lines.push('');
+  articles.forEach((a,i)=>{
+    lines.push(`### ${i+1}. ${a.titleEn}`);
+    lines.push(`**${a.titleZh||'（待翻译）'}**`);
+    lines.push('');
+    lines.push(`**作者：** ${fmtAuthors(a.authors)||'（待填写）'}`);
+    lines.push('');
+    lines.push(`**Abstract:** ${a.abstractEn||'（待填写）'}`);
+    lines.push('');
+    lines.push(`**摘要：** ${a.abstractZh||'（待翻译）'}`);
+    lines.push('');
+  });
+  return lines.join('\n');
+}
+
+// 下载文本文件
+function downloadText(content,filename){
+  const blob=new Blob([content],{type:'text/plain;charset=utf-8'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;
+  a.download=filename;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+/* ═══════════════════════════════
+   BookmarkletCard component
+════════════════════════════════ */
+function BookmarkletCard({journal}){
+  if(!journal||journal.id==='custom')return null;
+  const bm=BM[journal.pub]||BM.sage;
+  const tocUrl=journal.url.replace('{vol}','?').replace('{iss}','?').replace('{year}','?');
+  return(
+    <div className="bm-box">
+      <div className="bm-title">🔖 书签工具（拖到浏览器书签栏使用）</div>
+      <div className="bm-row">
+        <a className="bm-link bm-toc"
+          href={`javascript:${bm.toc}`}
+          title="拖到书签栏 → 在目录页点击 → 自动复制全部标题">
+          📋 目录提取器
+        </a>
+        <span style={{fontSize:11,color:'#888'}}>在目录页点击，一键复制所有文章标题</span>
+      </div>
+      <div className="bm-row">
+        <a className="bm-link bm-art"
+          href={`javascript:${bm.article}`}
+          title="拖到书签栏 → 在每篇文章页点击 → 自动复制标题+作者+摘要">
+          📄 文章提取器
+        </a>
+        <span style={{fontSize:11,color:'#888'}}>在每篇文章页点击，一键复制标题+作者+摘要</span>
+      </div>
+      <div className="bm-hint">
+        <b>使用流程：</b>① 将两个书签拖到书签栏 → ② 打开期刊目录页，点"目录提取器"→ 粘贴到下一步"批量导入" → ③ 逐篇打开文章页，点"文章提取器"→ 粘贴到"逐篇粘贴" → ④ 翻译 → ⑤ 输出
+      </div>
+    </div>
+  );
+}
+
+/* ═══════════════════════════════
+   Step 1: Journal Setup
+════════════════════════════════ */
+function Step1({config,setConfig,onNext}){
+  const u=(f,v)=>setConfig(p=>({...p,[f]:v}));
+  const ut=(f,v)=>setConfig(p=>({...p,team:{...p.team,[f]:v}}));
+  const j=JOURNALS.find(x=>x.id===config.journalId);
+  const ok=config.journalId&&config.vol&&config.iss&&config.year&&config.month&&config.team.editor&&config.team.finalReviewer;
+  return(<>
+    <div className="card">
+      <div className="ct">📰 选择期刊</div>
+      <div className="jg">
+        {JOURNALS.map(j=>(
+          <div key={j.id} className={`jc${config.journalId===j.id?' sel':''}`}
+            onClick={()=>u('journalId',j.id)}>
+            <div className="ja">{j.abbr}</div>
+            <div className="jn">{j.name}</div>
+            {j.rank&&<div className="jr">{j.rank}</div>}
+          </div>
+        ))}
+      </div>
+      {config.journalId==='custom'&&(
+        <div className="row">
+          <div className="fg" style={{flex:2}}>
+            <label>期刊全称</label>
+            <input className="fc" placeholder="Journal of Business Research"
+              value={config.customName||''} onChange={e=>u('customName',e.target.value)}/>
+          </div>
+          <div className="fg" style={{flex:3}}>
+            <label>链接模板（用 {'{vol}'} {'{iss}'} {'{year}'} 占位）</label>
+            <input className="fc" placeholder="https://..."
+              value={config.customUrl||''} onChange={e=>u('customUrl',e.target.value)}/>
+          </div>
+        </div>
+      )}
+      {j&&<BookmarkletCard journal={j}/>}
+    </div>
+
+    <div className="card">
+      <div className="ct">📅 本期信息</div>
+      <div className="row">
+        <div className="fg"><label>卷 Volume</label><input type="number" className="fc" placeholder="90" value={config.vol} onChange={e=>u('vol',e.target.value)}/></div>
+        <div className="fg"><label>期 Issue</label><input type="number" className="fc" placeholder="4" value={config.iss} onChange={e=>u('iss',e.target.value)}/></div>
+        <div className="fg"><label>年份</label><input type="number" className="fc" placeholder="2026" value={config.year} onChange={e=>u('year',e.target.value)}/></div>
+        <div className="fg"><label>月份</label>
+          <select className="fc" value={config.month} onChange={e=>u('month',e.target.value)}>
+            <option value="">选择…</option>
+            {ME.slice(1).map((m,i)=><option key={i+1} value={i+1}>{i+1}月 ({m})</option>)}
+          </select>
+        </div>
+        <div className="fg"><label>速递期数</label><input className="fc" placeholder="×" value={config.issueSeq} onChange={e=>u('issueSeq',e.target.value)}/></div>
+      </div>
+    </div>
+
+    <div className="card">
+      <div className="ct">👥 编辑组</div>
+      <div className="row">
+        {[['editor','采编'],['proofreader','校对'],['finalReviewer','终审']].map(([f,l])=>(
+          <div key={f} className="fg">
+            <label>{l}</label>
+            <input className="fc" placeholder="姓名" value={config.team[f]} onChange={e=>ut(f,e.target.value)}/>
+          </div>
+        ))}
+      </div>
+    </div>
+
+    <div className="navr"><span/><button className="btn bp" onClick={onNext} disabled={!ok}>下一步：录入文章 →</button></div>
+  </>);
+}
+
+/* ═══════════════════════════════
+   Step 2: Article Input
+════════════════════════════════ */
+function Step2({articles,setArticles,pushHistory,config,onNext,onBack}){
+  const [smartText,setSmartText]=useState('');
+  const [msg,setMsg]=useState(null);
+  const [detectedType,setDetectedType]=useState(null);
+  const [open,setOpen]=useState(null);
+
+  const j=JOURNALS.find(x=>x.id===config.journalId);
+
+  const handlePaste=(e)=>{
+    const text=e.target.value;
+    setSmartText(text);
+    if(text.length>10){
+      const type=detectPasteType(text);
+      setDetectedType(type);
+      if(type==='html')setMsg({t:'i',m:'📄 检测到HTML源码，将自动提取标题'});
+      else if(type==='json')setMsg({t:'i',m:'📋 检测到JSON格式'});
+      else if(type==='bookmark')setMsg({t:'i',m:'📝 检测到书签提取内容（单篇）'});
+      else if(type==='numbered')setMsg({t:'i',m:'📑 检测到编号列表'});
+      else setMsg({t:'i',m:'📄 检测到纯文本列表'});
+    }else{
+      setDetectedType(null);setMsg(null);
+    }
+  };
+
+  const smartImport=()=>{
+    const parsed=smartParse(smartText,j?.pub||'sage');
+    if(!parsed.length){
+      setMsg({t:'w',m:`未能解析内容。${detectedType==='html'?'该期刊可能需要手动复制标题，或尝试使用书签工具。':'请检查格式后重试。'}`});
+      return;
+    }
+    if(detectedType==='bookmark'&&articles.length>0){
+      // 书签模式：更新第一篇未完成的文章
+      const targetIdx=articles.findIndex(a=>!a.abstractEn);
+      if(targetIdx>=0){
+        const updated=[...articles];
+        updated[targetIdx]={...updated[targetIdx],...parsed[0]};
+        pushHistory(updated);
+        setMsg({t:'ok',m:`✓ 已填入第 ${targetIdx+1} 篇`});
+        setSmartText('');
+        return;
+      }
+    }
+    pushHistory(parsed);
+    setMsg({t:'ok',m:`✓ 已导入 ${parsed.length} 篇`});
+    setSmartText('');
+  };
+
+  const delA=(id)=>{
+    if(!confirm('确定删除此篇？'))return;
+    pushHistory(articles.filter(a=>a.id!==id));
+  };
+
+  const editA=(id,k,v)=>{
+    setArticles(prev=>prev.map(a=>a.id===id?{...a,[k]:v}:a));
+  };
+
+  const statusBadge=(a)=>{
+    const checks=[];
+    if(!a.titleZh)checks.push('标题');
+    if(!a.authors||!a.authors.length)checks.push('作者');
+    if(!a.abstractEn)checks.push('摘要EN');
+    if(!a.abstractZh)checks.push('摘要ZH');
+    if(!checks.length)return <span className="badge bg">✓ 完整</span>;
+    return <span className="badge by">待补充：{checks.join('、')}</span>;
+  };
+
+  const absCheck=(abs)=>{
+    const c=checkAbstract(abs);
+    if(c.status==='ok')return <span style={{color:'#52c41a'}}>✓</span>;
+    if(c.status==='empty')return <span style={{color:'#ccc'}}>—</span>;
+    if(c.status==='short')return <span style={{color:'#fa8c16'}} title={c.msg}>⚠️</span>;
+    if(c.status==='long')return <span style={{color:'#fa8c16'}} title={c.msg}>⚠️</span>;
+    return <span style={{color:'#999'}} title={c.msg}>○</span>;
+  };
+
+  return(<>
+    <BookmarkletCard journal={j}/>
+
+    <div className="card">
+      <div className="ct">📥 智能导入 <span style={{fontSize:13,color:'#666',fontWeight:400}}>— 粘贴任意格式，自动识别</span></div>
+      <textarea className="ta" rows={8} placeholder="支持粘贴：HTML源码 / JSON数组 / 编号列表 / 书签提取内容" value={smartText} onChange={handlePaste}/>
+      {msg&&<div className={`msg msg-${msg.t}`}>{msg.m}</div>}
+      <div className="navr">
+        <span style={{fontSize:13,color:'#999'}}>
+          {detectedType&&`检测类型：${detectedType==='html'?'HTML':detectedType==='json'?'JSON':detectedType==='bookmark'?'书签':detectedType==='numbered'?'编号列表':'文本列表'}`}
+        </span>
+        <button className="btn bp" onClick={smartImport} disabled={!smartText.trim()}>导入</button>
+      </div>
+    </div>
+
+    <div className="card">
+      <div className="ct">📋 文章列表 <span style={{fontSize:14,color:'#666'}}>({articles.length} 篇)</span></div>
+      {!articles.length&&<div style={{padding:'40px 20px',textAlign:'center',color:'#999'}}>暂无文章，请先使用上方导入功能</div>}
+      {articles.map((a,i)=>(
+        <div key={a.id} className="arow">
+          <div className="arow-h" onClick={()=>setOpen(open===i?null:i)}>
+            <div style={{flex:1}}>
+              <div style={{fontWeight:500,marginBottom:4}}>{i+1}. {a.titleEn||'（待填写）'}</div>
+              <div style={{fontSize:13,color:'#666'}}>{a.titleZh||'（待翻译）'}</div>
+            </div>
+            <div style={{display:'flex',gap:8,alignItems:'center'}}>
+              {absCheck(a.abstractEn)}
+              {statusBadge(a)}
+              <button className="btn-s bd" onClick={(e)=>{e.stopPropagation();delA(a.id)}}>删除</button>
+            </div>
+          </div>
+          {open===i&&(
+            <div className="arow-b">
+              <div className="fg"><label>英文标题</label><input className="fc" value={a.titleEn} onChange={e=>editA(a.id,'titleEn',e.target.value)}/></div>
+              <div className="fg"><label>中文标题</label><input className="fc" value={a.titleZh} onChange={e=>editA(a.id,'titleZh',e.target.value)}/></div>
+              <div className="fg"><label>作者（逗号分隔）</label><input className="fc" value={a.authors.join(', ')} onChange={e=>editA(a.id,'authors',e.target.value.split(',').map(x=>x.trim()).filter(Boolean))}/></div>
+              <div className="fg"><label>英文摘要</label><textarea className="ta" rows={4} value={a.abstractEn} onChange={e=>editA(a.id,'abstractEn',e.target.value)}/></div>
+              <div className="fg"><label>中文摘要</label><textarea className="ta" rows={4} value={a.abstractZh} onChange={e=>editA(a.id,'abstractZh',e.target.value)}/></div>
+            </div>
+          )}
+        </div>
+      ))}
+    </div>
+
+    <div className="navr">
+      <button className="btn" onClick={onBack}>← 返回</button>
+      <button className="btn bp" onClick={onNext} disabled={!articles.length}>下一步：翻译 →</button>
+    </div>
+  </>);
+}
+function Step3({articles,setArticles,pushHistory,onNext,onBack}){
+  const [tab,setTab]=useState('manual');
+  const [itext,setItext]=useState('');
+  const [imsg,setImsg]=useState(null);
+  const [copied,setCopied]=useState(false);
+
+  const needTrans=articles.filter(a=>(!a.titleZh&&a.titleEn)||(!a.abstractZh&&a.abstractEn));
+  const allDone=articles.every(a=>a.titleZh&&a.abstractZh);
+  const doneCount=articles.length-needTrans.length;
+  const prompt=genPrompt(articles);
+
+  const copyPrompt=async()=>{
+    await navigator.clipboard.writeText(prompt).catch(()=>{});
+    setCopied(true);setTimeout(()=>setCopied(false),2500);
+  };
+
+  const importTrans=()=>{
+    const updates=parseTransResult(itext,articles);
+    if(!Object.keys(updates).length){setImsg({t:'w',m:'未能解析，请确认格式：[1]\n标题：...\n摘要：...'});return}
+    pushHistory(articles.map((a,i)=>updates[i]?{...a,...updates[i]}:a));
+    setImsg({t:'ok',m:`✓ 成功导入 ${Object.keys(updates).length} 篇`});
+    setItext('');
+  };
+
+  const updA=(idx,f,v)=>setArticles(p=>p.map((a,i)=>i===idx?{...a,[f]:v}:a));
+
+  return(<>
+    <div className="card">
+      <div className="ct">🌐 翻译 <span style={{fontSize:13,color:'#666',fontWeight:400}}>— 进度：{doneCount}/{articles.length} 篇</span></div>
+
+      <div style={{background:'#f5f7fa',padding:'12px 16px',borderRadius:6,marginBottom:16}}>
+        <div style={{display:'flex',justifyContent:'space-between',fontSize:13,marginBottom:6}}>
+          <span style={{color:'#666'}}>翻译进度</span>
+          <span style={{color:'#1890ff',fontWeight:500}}>{doneCount}/{articles.length} 篇 ({articles.length?Math.round(doneCount/articles.length*100):0}%)</span>
+        </div>
+        <div style={{height:8,background:'#e8ecf1',borderRadius:4,overflow:'hidden'}}>
+          <div style={{height:'100%',background:'linear-gradient(90deg,#1890ff,#36cfc9)',width:`${articles.length?doneCount/articles.length*100:0}%`,transition:'width 0.3s'}}/>
+        </div>
+      </div>
+
+      <div className="tabs">
+        <div className={`tab${tab==='manual'?' on':''}`} onClick={()=>setTab('manual')}>复制提示词翻译</div>
+        <div className={`tab${tab==='edit'?' on':''}`} onClick={()=>setTab('edit')}>逐篇编辑</div>
+      </div>
+
+      {tab==='manual'&&(
+        <div>
+          <div className="al2 ai2">① 点"复制提示词" → ② 粘贴到任意 AI（Claude / ChatGPT / DeepSeek 网页或客户端）→ ③ 把返回的译文整段贴回下方 → ④ 点"导入翻译"自动填充。</div>
+          <div style={{display:'flex',justifyContent:'flex-end',marginBottom:8}}>
+            <button className="btn bp" onClick={copyPrompt} disabled={!prompt||allDone}>
+              {copied?'✓ 已复制！':'复制提示词'}
+            </button>
+          </div>
+          {prompt?<pre className="ob" style={{fontSize:12,lineHeight:1.7,marginBottom:16}}>{prompt}</pre>:<div className="al2 aok">✓ 全部已翻译，无需操作。</div>}
+          <div className="fg">
+            <label>粘贴翻译结果</label>
+            <textarea className="fc" rows={10} placeholder={`[1]\n标题：...\n摘要：...`} value={itext} onChange={e=>setItext(e.target.value)}/>
+          </div>
+          {imsg&&<div className={`al2 ${imsg.t==='ok'?'aok':'aw'}`}>{imsg.m}</div>}
+          <button className="btn bp" onClick={importTrans} disabled={!itext.trim()}>导入翻译</button>
+        </div>
+      )}
+
+      {tab==='edit'&&(
+        <div>
+          {articles.map((a,idx)=>(
+            <div key={a.id||idx} style={{marginBottom:16,paddingBottom:16,borderBottom:idx<articles.length-1?'1px solid #edf0f7':'none'}}>
+              <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:8}}>
+                <div style={{fontWeight:700,color:'#C00000',fontSize:12}}>{idx+1}. {a.titleEn}</div>
+                {checkAbstract(a.abstractZh).status==='ok'?<span style={{color:'#52c41a',fontSize:12}}>✓ 已完成</span>:<span style={{color:'#fa8c16',fontSize:12}}>待翻译</span>}
+              </div>
+              <div className="fg">
+                <label>中文标题</label>
+                <input className="fc" value={a.titleZh} placeholder="（待翻译）" onChange={e=>updA(idx,'titleZh',e.target.value)}/>
+              </div>
+              <div className="fg">
+                <label>中文摘要 {checkAbstract(a.abstractZh).status!=='ok'&&<span style={{color:'#fa8c16',fontSize:12}}>({checkAbstract(a.abstractZh).msg})</span>}</label>
+                <textarea className="fc" rows={3} value={a.abstractZh} placeholder="（待翻译）" onChange={e=>updA(idx,'abstractZh',e.target.value)}/>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+
+    <div className="navr">
+      <button className="btn bo" onClick={onBack}>← 返回</button>
+      <button className="btn bp" onClick={onNext}>下一步：预览输出 →</button>
+    </div>
+  </>);
+}
+function Step4({config,articles,onBack}){
+  const journal=JOURNALS.find(j=>j.id===config.journalId)||JOURNALS[0];
+  const [sec,setSec]=useState('all');
+  const [copied,setCopied]=useState(false);
+  const [showHistory,setShowHistory]=useState(false);
+
+  const full=genOutput(config,articles,journal);
+  const lines=full.split('\n');
+  const mi=lines.findIndex(l=>l.trim()==='目录');
+  const zi=lines.findIndex(l=>l.trim()==='摘要');
+
+  const getText=()=>({
+    all:full,
+    hdr:lines.slice(0,mi).join('\n').trim(),
+    mulu:lines.slice(mi,zi).join('\n').trim(),
+    zhaiyao:lines.slice(zi).join('\n').trim(),
+  })[sec]||full;
+
+  const copy=async()=>{
+    await navigator.clipboard.writeText(getText()).catch(()=>{});
+    setCopied(true);setTimeout(()=>setCopied(false),2000);
+  };
+
+  const saveHistory=()=>{
+    try{
+      const histList=JSON.parse(localStorage.getItem('wsd_history')||'[]');
+      const newEntry={
+        id:Date.now(),
+        journal:journal.abbr,
+        vol:config.vol,
+        iss:config.iss,
+        year:config.year,
+        month:config.month,
+        date:new Date().toLocaleString('zh-CN'),
+        articleCount:articles.length,
+        data:{config,articles},
+      };
+      histList.unshift(newEntry);
+      localStorage.setItem('wsd_history',JSON.stringify(histList.slice(0,10)));
+      alert('✓ 已保存到历史记录');
+    }catch(e){
+      alert('保存失败：'+e.message);
+    }
+  };
+
+  const loadHistory=(entry)=>{
+    if(!confirm(`加载 ${entry.journal} ${entry.year}年第${entry.iss}期？当前内容将被覆盖。`))return;
+    window.location.reload();
+    try{
+      localStorage.setItem('wsd_history',JSON.stringify({step:3,config:entry.data.config,articles:entry.data.articles}));
+    }catch{}
+  };
+
+  const exportMarkdown=()=>{
+    const md=genMarkdown(config,articles,journal);
+    downloadText(md,`${journal.abbr}_${config.year}Vol${config.vol}Iss${config.iss}.md`);
+  };
+
+  const exportPlainText=()=>{
+    downloadText(full,`${journal.abbr}_${config.year}Vol${config.vol}Iss${config.iss}.txt`);
+  };
+
+  const histList=JSON.parse(localStorage.getItem('wsd_history')||'[]');
+  const missing=articles.filter(a=>!a.titleZh||!a.abstractZh).length;
+
+  return(<>
+    {missing>0&&<div className="al2 aw">⚠ 还有 <b>{missing}</b> 篇缺中文翻译，输出中以"（待翻译）"占位。</div>}
+    
+    <div className="card">
+      <div className="ct">📋 预览与导出</div>
+      <div className="tabs" style={{marginBottom:12}}>
+        {[['all','完整输出'],['hdr','头部信息'],['mulu','仅目录'],['zhaiyao','仅摘要']].map(([v,l])=>(
+          <div key={v} className={`tab${sec===v?' on':''}`} onClick={()=>setSec(v)}>{l}</div>
+        ))}
+      </div>
+      <div style={{display:'flex',gap:8,justifyContent:'flex-end',marginBottom:8}}>
+        <button className="btn" onClick={saveHistory}>💾 保存到历史</button>
+        <button className="btn" onClick={exportMarkdown}>📝 导出 Markdown</button>
+        <button className="btn" onClick={exportPlainText}>📄 导出 TXT</button>
+        <button className="btn bp" onClick={copy}>{copied?'✓ 已复制！':'复制到剪贴板'}</button>
+      </div>
+      <pre className="ob">{getText()}</pre>
+      <div className="al2 ai2" style={{marginTop:11,fontSize:11.5}}>
+        💡 粘贴到 Word 后，按格式规范设置颜色：目录英文标题→蓝色 <b>#315EA3</b> 加粗；摘要区编号行→深红 <b>#C00000</b> 加粗；节标题"目录/摘要"→深蓝 <b>#1F4E79</b> 加粗居中。
+      </div>
+    </div>
+
+    <div className="card">
+      <div className="ct" style={{cursor:'pointer'}} onClick={()=>setShowHistory(!showHistory)}>
+        📜 历史记录 ({histList.length}) {showHistory?'▼':'▶'}
+      </div>
+      {showHistory&&(
+        <div>
+          {!histList.length&&<div style={{padding:'20px',textAlign:'center',color:'#999'}}>暂无历史记录</div>}
+          {histList.map(h=>(
+            <div key={h.id} style={{padding:'12px',borderBottom:'1px solid #edf0f7',display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+              <div>
+                <div style={{fontWeight:500,marginBottom:4}}>{h.journal} {h.year}年 Vol.{h.vol} Iss.{h.iss}</div>
+                <div style={{fontSize:12,color:'#999'}}>{h.date} · {h.articleCount} 篇文章</div>
+              </div>
+              <button className="btn-s bp" onClick={()=>loadHistory(h)}>加载</button>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+
+    <div className="navr">
+      <button className="btn bo" onClick={onBack}>← 返回修改</button>
+    </div>
+  </>);
+}
+
+/* ═══════════════════════════════
+   App Root
+════════════════════════════════ */
+const INIT={
+  journalId:'',vol:'',iss:'',year:new Date().getFullYear(),month:'',issueSeq:'×',
+  customName:'',customUrl:'',
+  team:{editor:'',proofreader:'',finalReviewer:'邵兵家'},
+};
+
+function App(){
+  const saved=load();
+  const [step,setStep]=useState(saved?.step||0);
+  const [config,setConfig]=useState(saved?.config||INIT);
+  const [articles,setArticles]=useState(saved?.articles||[]);
+  const [history,setHistory]=useState([]);
+  const [historyIndex,setHistoryIndex]=useState(-1);
+
+  useEffect(()=>save({step,config,articles}),[step,config,articles]);
+  
+  // 撤销/恢复
+  const pushHistory=(newArticles)=>{
+    setHistory(h=>[...h.slice(0,historyIndex+1),JSON.parse(JSON.stringify(articles))].slice(-20));
+    setHistoryIndex(i=>i+1);
+    setArticles(newArticles);
+  };
+  const undo=()=>{
+    if(historyIndex>=0){
+      const prev=history[historyIndex];
+      setArticles(prev);
+      setHistoryIndex(i=>i-1);
+    }
+  };
+  const redo=()=>{
+    if(historyIndex<history.length-1){
+      const next=history[historyIndex+1];
+      setArticles(next);
+      setHistoryIndex(i=>i+1);
+    }
+  };
+
+  const setC=useCallback(v=>setConfig(p=>typeof v==='function'?v(p):v),[]);
+  const setA=useCallback(v=>setArticles(p=>typeof v==='function'?v(p):v),[]);
+
+  const reset=()=>{
+    if(!confirm('确定要清空所有内容、重新开始吗？'))return;
+    setStep(0);setConfig(INIT);setArticles([]);
+    try{localStorage.removeItem(SK)}catch{}
+  };
+
+  const STPS=['期刊配置','录入文章','翻译','预览输出'];
+
+  return(
+    <div className="app">
+      <div className="hdr">
+        <div>
+          <h1>📚 文献速递工作台 <span style={{fontSize:14,color:'#666',fontWeight:400}}>v0.8</span></h1>
+          <p>营销 &amp; 信息系统期刊 · 一站式流程化生成工具</p>
+        </div>
+        <div className="hdr-right">
+          <button className="ghost-btn" onClick={undo} disabled={historyIndex<0} title="撤销">↶</button>
+          <button className="ghost-btn" onClick={redo} disabled={historyIndex>=history.length-1} title="恢复">↷</button>
+          <button className="ghost-btn" onClick={reset}>重置</button>
+        </div>
+      </div>
+
+      <div className="steps">
+        {STPS.map((s,i)=>(
+          <div key={i} className={`stp${i===step?' active':i<step?' done':''} ${i<step?'back':''}`}
+            onClick={()=>i<step&&setStep(i)}>
+            <div className="stp-n">{i<step?'✓':i+1}</div>
+            <span style={{fontWeight:500,fontSize:12.5}}>{s}</span>
+          </div>
+        ))}
+      </div>
+
+      {step===0&&<Step1 config={config} setConfig={setC} onNext={()=>setStep(1)}/>}
+      {step===1&&<Step2 articles={articles} setArticles={setA} pushHistory={pushHistory} config={config}
+        onNext={()=>setStep(2)} onBack={()=>setStep(0)}/>}
+      {step===2&&<Step3 articles={articles} setArticles={setA} pushHistory={pushHistory}
+        onNext={()=>setStep(3)} onBack={()=>setStep(1)}/>}
+      {step===3&&<Step4 config={config} articles={articles} onBack={()=>setStep(2)}/>}
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+</body>
+</html>
