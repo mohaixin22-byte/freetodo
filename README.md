@@ -45,7 +45,7 @@
 
 ## 文献速递工作台 v0.8 更新说明
 
-👉 [点击打开工具 v0.8]
+👉 [点击打开工具 v0.8](https://mohaixin22-byte.github.io/-/indexv08.html)
 
 相对 v0.5 的完整变更记录。
 
