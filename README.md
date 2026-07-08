@@ -4,7 +4,7 @@
 
 ## 在线使用
 
-👉 [点击打开工具 v0.8](https://mohaixin22-byte.github.io)
+👉 [点击打开工具 v0.8](https://mohaixin22-byte.github.io/)
 
 > 也可下载 `index.html` 到本地，用 Chrome / Edge 打开直接使用，无需安装任何软件。
 
