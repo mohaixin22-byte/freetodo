@@ -1,28 +1,48 @@
-# 文献速递工作台 v1.0
+# 文献速递工作台 v1.5
 
-文献速递制作工具（Design by mohaixin22），支持从期刊目录页一键提取文章、批量翻译、一键导出格式化 Word 文档。
+文献速递制作工具（Design by mohaixin22），支持**按卷期一键自动抓取**文章、批量翻译、一键导出格式化 Word 文档。
 
 ## 在线使用
 
-👉 [点击打开工具 v1.0](https://mohaixin22-byte.github.io/freetodo/)
+👉 [点击打开工具 v1.5](https://mohaixin22-byte.github.io/freetodo/)
 
 > 也可下载 `index.html` 到本地，用 Chrome / Edge 打开直接使用，无需安装任何软件。
+> 自动抓取功能需联网，建议使用在线版（`https://`）以获得最佳兼容性。
 
 ## 功能介绍
 
 **① 期刊配置**：选择目标期刊（JAMS / JM / JMR / JCR / MS / PM / MISQ / JCP / ISR），填写卷期信息和采编团队。
 
-**② 录入文章**：智能识别粘贴内容类型，支持多种导入方式：
-- 自动识别：粘贴 HTML 源码 / JSON 数组 / 编号列表 / 书签提取内容，无需手动选择
-- 配合书签工具在文章页面一键复制标题 + 作者 + 摘要
+**② 录入文章**：三种方式任选，可混用：
+- 🚀 **按卷期自动抓取**（v1.5 新增）：填好卷期，一键抓取全期文章的标题 + 作者 + 摘要
+- 智能导入：粘贴 HTML 源码 / JSON 数组 / 编号列表 / 书签提取内容，自动识别类型
+- 书签工具：在期刊页面一键复制标题 + 作者 + 摘要
 
 **③ 翻译**：生成专业提示词（含营销 / IS 学科术语规范）→ 发给任意 AI → 将结果粘贴回工具自动导入，无需 API。
 
 **④ 预览输出**：生成标准文献速递格式，可复制到剪贴板，或一键导出 Word（`.docx`）/ Markdown 文件。
 
-## ✨ 一键导出 Word（v1.0 核心功能）
+## 🚀 按卷期自动抓取（v1.5 核心功能）
 
-告别手动排版！点击「导出 Word」即可下载排版完成的 `.docx`，所有格式自动套用，打开即成品：
+告别逐篇手点书签！在「录入文章」页选好期刊、填入卷期，点击「开始抓取」，工具自动拉取整期文章的**标题、作者、学术原摘要**并填入列表。
+
+**工作原理**：文章清单来自 [Crossref](https://www.crossref.org/) 官方 API；摘要按期刊自动选择获取方式，全程纯前端、数据不出本地浏览器。
+
+| 抓取方式 | 适用期刊 | 特点 |
+|----------|----------|------|
+| **Crossref 直取** | PM / JCP / JCR / JAMS / MISQ | 秒级获取，无反爬 |
+| **回官网穿透** | JM / JMR / MS / ISR | 逐篇抓学术原摘要，约 1~3 分钟 |
+
+> **为什么分两类？** 部分出版商（如 INFORMS）在元数据库里存的是简版摘要，工具会自动识别并回官网抓取学术原摘要，保证翻译质量。
+
+**使用提示**
+- 抓取会**替换**当前文章列表，请在录入前操作
+- 最新一期若抓不全，可能是数据库尚未收录（新刊常见），可稍后重试或用书签 / 手动方式补充
+- 个别摘要抓取失败会**留空并标记**，手动补齐即可
+
+## ✨ 一键导出 Word
+
+点击「导出 Word」即可下载排版完成的 `.docx`，所有格式自动套用，打开即成品：
 
 - **页面**：A4，上下边距 2.54cm、左右边距 3.17cm
 - **中英文双字体**：西文 Times New Roman，中文宋体 / 微软雅黑，分别精确指定
@@ -40,26 +60,41 @@
 
 ## 支持期刊
 
-| 缩写 | 全称 | 级别 | 出版商 |
-|------|------|------|--------|
-| JAMS | Journal of the Academy of Marketing Science | FT 50 | Springer |
-| JM | Journal of Marketing | UTD 24 | SAGE |
-| JMR | Journal of Marketing Research | UTD 24 | SAGE |
-| JCR | Journal of Consumer Research | UTD 24 | OUP |
-| MS | Marketing Science | UTD 24 | INFORMS |
-| PM | Psychology & Marketing | ABS 3 | Wiley |
-| MISQ | MIS Quarterly | UTD 24 | MISQ |
-| JCP | Journal of Consumer Psychology | ABS 4 | Wiley |
-| ISR | Information Systems Research | UTD 24 | INFORMS |
+| 缩写 | 全称 | 级别 | 出版商 | 自动抓取 |
+|------|------|------|--------|----------|
+| JAMS | Journal of the Academy of Marketing Science | FT 50 | Springer | ✅ 直取 |
+| JM | Journal of Marketing | UTD 24 | SAGE | ✅ 官网 |
+| JMR | Journal of Marketing Research | UTD 24 | SAGE | ✅ 官网 |
+| JCR | Journal of Consumer Research | UTD 24 | OUP | ✅ 直取 |
+| MS | Marketing Science | UTD 24 | INFORMS | ✅ 官网 |
+| PM | Psychology & Marketing | ABS 3 | Wiley | ✅ 直取 |
+| MISQ | MIS Quarterly | UTD 24 | MISQ | ✅ 直取 |
+| JCP | Journal of Consumer Psychology | ABS 4 | Wiley | ✅ 直取 |
+| ISR | Information Systems Research | UTD 24 | INFORMS | ✅ 官网 |
 
 ## 注意事项
 
 - 数据存储在本地浏览器，各人互不干扰
+- 自动抓取与翻译均需联网；抓取数据源为 Crossref 官方 API，仅获取公开的摘要与元数据
 - 翻译需配合任意 AI 对话使用，工具会自动生成专业提示词
 - 书签在不同期刊网站的兼容性不同，如遇抓取失败可手动粘贴内容
 - 首次导出 Word 需联网加载排版库（docx.js），之后浏览器会自动缓存
 
-## v1.0 更新内容
+## v1.5 更新内容
+
+**新增**
+- 🚀 **按卷期自动抓取**：填入卷期一键抓取全期文章的标题 / 作者 / 学术原摘要，覆盖全部 9 本期刊
+  - 双路径策略：Crossref 直取（秒级）+ 回官网穿透（抓学术原摘要，避开简版陷阱）
+  - 实时进度条、失败篇自动标记留空、自动过滤编辑栏目
+- 与原有书签工具、智能导入并存，三种录入方式可混用
+
+**优化**
+- 抓取失败具备多重容错：双模式解析 + 自动重试 + 篇间延迟防限流
+
+## 历史版本
+
+<details>
+<summary>v1.0 更新内容</summary>
 
 **新增**
 - 🎯 一键导出 Word（`.docx`）：精确还原文献速递排版规范——A4 页边距、中英文双字体、字号行距、多色着色、智能分段，导出即成品，无需再手动排版
@@ -76,7 +111,7 @@
 - 移除摘要「疑似未截断（>800字）」的误报（学术长摘要属正常）
 - 摘要区文章编号与标题之间不再有多余空格
 
-## 历史版本
+</details>
 
 <details>
 <summary>v0.8 更新内容</summary>
