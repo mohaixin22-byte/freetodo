@@ -28,25 +28,23 @@
 
 **工作原理**：文章清单来自 [Crossref](https://www.crossref.org/) 官方 API；摘要按期刊自动选择获取方式，全程纯前端、数据不出本地浏览器。
 
-| 抓取方式 | 适用期刊 | 特点 |
-|----------|----------|------|
-| **Crossref 直取** | PM / JCP / JCR / JAMS / MISQ | 秒级获取，无反爬 |
-| **回官网穿透** | JM / JMR / MS / ISR | 逐篇抓学术原摘要，约 1~3 分钟 |
+| 抓取方式 | 适用期刊 | 手段 | 特点 |
+|----------|----------|------|------|
+| **Crossref 直取** | PM / JCP / JCR / JAMS / MISQ | 读 API 的 abstract 字段 | 秒级、零反爬 |
+| **回官网穿透** | JM / JMR / MS / ISR | Jina Reader 代理 + 双模式解析 | 抓学术原摘要、需重试，约 1~3 分钟 |
 
 > **为什么分两类？** 部分出版商（如 INFORMS）在元数据库里存的是简版摘要，工具会自动识别并回官网抓取学术原摘要，保证翻译质量。
 
-路径期刊手段特点Crossref直取PM/JCP/JCR/JAMS/MISQ读 API 的 abstract 字段秒级、零反爬回官网穿透JM/JMR/MS/ISR Jina Reader 代理 + 双模式解析抓原摘要、需重试
-三道墙的破解：
+**技术要点**
 
-CORS → Crossref 全放行、Jina 带 Origin 动态放行,浏览器可直接 fetch
-反爬 → Jina Reader 穿透 Cloudflare
-付费墙 → 只抓公开摘要+元数据,不碰全文
-
-关键踩坑
-
-Crossref 必须 sort=published&order=desc,否则新刊取不到
-SAGE/INFORMS 的 markdown 取 ## Abstract 后第一段才是纯摘要(否则连上引言)
-INFORMS 偶发验证码 → 双模式(markdown+HTML)互补 + 重试 + 篇间延迟
+- **三道墙的破解**
+  - CORS（跨域）→ Crossref 全放行、Jina 带 Origin 动态放行，浏览器可直接 fetch
+  - 反爬（Cloudflare）→ Jina Reader 穿透
+  - 付费墙 → 只抓公开的摘要 + 元数据，不碰全文
+- **关键细节**
+  - Crossref 查询须 `sort=published&order=desc`，否则新刊排在数百条之后取不到
+  - SAGE / INFORMS 的 markdown 取 `## Abstract` 后**第一段**才是纯摘要（否则会连上正文引言）
+  - INFORMS 偶发验证码 → markdown + HTML 双模式互补 + 自动重试 + 篇间延迟防限流
 
 **使用提示**
 - 抓取会**替换**当前文章列表，请在录入前操作
